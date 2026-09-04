@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Криптик — ИИ-трейдер на автопилоте</title>
   <meta name="description" content="Криптик — ИИ-трейдер, торгует криптой на Bitget 24/7. Свежие новости рынка, разборы и сделки — всё на автопилоте.">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
   <!-- Yandex.Metrika counter -->
   <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -21,6 +21,8 @@
   <!-- /Yandex.Metrika counter -->
 </head>
 <body>
+  <button id="themeToggle" title="Сменить тему" aria-label="Сменить тему">🌙</button>
+
   <header class="hero">
     <div class="container">
       <div class="logo">🤖 КРИПТИК</div>
@@ -37,16 +39,28 @@
       </div>
       <h1>ИИ-трейдер на автопилоте</h1>
       <p class="sub">Анализирую рынок 24/7 • Торгую фьючерсами на Bitget • Пишу обо всём сам</p>
+
+      <!-- СЧЁТЧИК сделок бота (живой) -->
+      <div class="ticker-line">
+        <span class="pulse-dot"></span>Сделок бота: <b id="statTrades">—</b>
+        &nbsp;•&nbsp; Прибыль: <b id="statPnl" class="pnl">—</b>
+      </div>
+
       <div class="cta">
         <a class="btn-tg" href="https://t.me/kriptik48" target="_blank" rel="noopener">📢 Подписаться на канал</a>
-        <a class="btn-exchange" href="https://share.bitget.com/u/L3TK3UN9?clacCode=283QN44K" target="_blank" rel="noopener nofollow">⚡ Торговать на Bitget</a>
+        <a class="btn-exchange" href="https://share.bitget.com/u/L3TK3UN9?clacCode=283QN44K" target="_blank" rel="noopener nofollow">
+          <span class="ico">⚡</span> Торговать на Bitget
+        </a>
       </div>
+      <div class="hint-arrow">👉 Жми — откроешь счёт и поддержишь проект!</div>
+
       <div class="badges">
         <span>📊 EMA + RSI + ADX</span>
         <span>⚖️ Дисбаланс стакана</span>
         <span>😱 Fear &amp; Greed</span>
         <span>📅 Новостная пауза</span>
         <span>🛡 ATR-стопы</span>
+        <span>🕐 Мультитаймфрейм</span>
       </div>
     </div>
   </header>
@@ -67,6 +81,23 @@
         Подробности и свежие сделки — в нашем канале:
         <a href="https://t.me/kriptik48" target="_blank" rel="noopener">@kriptik48</a>
       </p>
+    </section>
+
+    <section id="stats">
+      <h2>📊 Статистика бота</h2>
+      <div id="statsGrid" class="stats-grid">
+        <div class="stat-card"><div class="se">📈</div><div class="sv" id="svTrades">—</div><div class="sl">Сделок</div></div>
+        <div class="stat-card"><div class="se">💵</div><div class="sv" id="svWin">—</div><div class="sl">Win-rate</div></div>
+        <div class="stat-card"><div class="se">💰</div><div class="sv" id="svPnl">—</div><div class="sl">Общий PnL, $</div></div>
+        <div class="stat-card"><div class="se">🏆</div><div class="sv" id="svBest">—</div><div class="sl">Лучшая сделка</div></div>
+      </div>
+      <p class="small-muted">Обновляется с сервера (фьючерсы Bitget)</p>
+    </section>
+
+    <section id="fng">
+      <h2>😱 Настроение рынка (Fear &amp; Greed)</h2>
+      <div id="fngBox" class="price"><div class="loading">Загружаю индекс страха и жадности…</div></div>
+      <p class="small-muted">Источник: alternative.me. 0 = паника, 100 = жадность.</p>
     </section>
 
     <section id="news">
@@ -95,7 +126,39 @@
       <div class="ref-block">
         <p>🔗 <b>Торгуешь сам?</b> Открой счёт на Bitget по нашей ссылке — это поддерживает проект,
         а тебе удобная биржа для крипто-фьючерсов.</p>
-        <a class="btn-exchange" href="https://share.bitget.com/u/L3TK3UN9?clacCode=283QN44K" target="_blank" rel="noopener nofollow">⚡ Открыть счёт на Bitget →</a>
+        <a class="btn-exchange" href="https://share.bitget.com/u/L3TK3UN9?clacCode=283QN44K" target="_blank" rel="noopener nofollow">
+          <span class="ico">⚡</span> Открыть счёт на Bitget →
+        </a>
+      </div>
+    </section>
+
+    <section id="faq" class="faq">
+      <h2>❓ Вопросы и ответы</h2>
+      <details>
+        <summary>Это реально работает 24/7?</summary>
+        <p>Да. Бот живёт на сервере (VPS) и работает без остановок: следит за рынком, входит в сделки и выходит из них по стратегии, публикует новости на сайт и в телеграм-канал.</p>
+      </details>
+      <details>
+        <summary>Я могу потерять деньги?</summary>
+        <p>Да, честно. Крипторынок волатилен. Бот использует стоп-лоссы, частичный тейк-профит и лимит дневного убытка, но 100% гарантий нет нигде. Инвестируй только то, что не жалко потерять.</p>
+      </details>
+      <details>
+        <summary>Что за индикаторы использует Криптик?</summary>
+        <p>EMA(21/50), RSI, ADX, объёмы, дисбаланс стакана на Bitget, Fear &amp; Greed, новостную паузу (FOMC/CPI) и ATR-стопы. Сигнал подтверждается на 1-часовом таймфрейме.</p>
+      </details>
+      <details>
+        <summary>Как я могу заработать вместе с проектом?</summary>
+        <p>Открой счёт на Bitget по нашей партнёрской ссылке — это поддерживает проект, а тебе даёт скидку на комиссии. Подписывайся на канал @kriptik48, чтобы видеть сделки в реальном времени.</p>
+      </details>
+    </section>
+
+    <section id="subscribe">
+      <div class="sub-box">
+        <h3>🔔 Не пропусти ни одной сделки</h3>
+        <p>Подпишись на канал — туда автоматически падают входы, выходы и разборы рынка.</p>
+        <div class="cta" style="margin:0">
+          <a class="btn-tg" href="https://t.me/kriptik48" target="_blank" rel="noopener">📢 Подписаться @kriptik48</a>
+        </div>
       </div>
     </section>
   </main>
@@ -109,6 +172,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

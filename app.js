@@ -79,7 +79,70 @@ async function loadPrices() {
   }
 }
 
-// --- 3. Цели Метрики: прокрутка до конца + 30 сек на сайте ---
+// --- 2.5 Fear & Greed Index ---
+async function loadFNG() {
+  const el = document.getElementById('fngBox');
+  if (!el) return;
+  try {
+    const resp = await fetch('https://api.alternative.me/fng/?limit=1');
+    if (!resp.ok) throw new Error('fng недоступен');
+    const d = await resp.json();
+    const v = parseInt(d.data[0].value, 10);
+    const cls = v >= 60 ? 'up' : v <= 40 ? 'down' : '';
+    el.className = 'price ' + cls;
+    const labels = { 0:'😱 Паника', 25:'😨 Страх', 50:'😐 Нейтрально', 75:'😃 Жадность', 100:'🚀 Эйфория' };
+    let label = '';
+    for (const [k, l] of Object.entries(labels)) {
+      if (v >= Number(k)) label = l;
+    }
+    el.innerHTML = `<span class="psym">😱 Fear &amp; Greed</span>
+      <span class="pval">${v}/100</span>
+      <span class="ppct">${label}</span>`;
+  } catch (e) {
+    el.innerHTML = '<div class="loading">Индекс недоступен…</div>';
+  }
+}
+
+// --- 2.6 СТАТИСТИКА бота (stats.json обновляет cron на VPS) ---
+async function loadStats() {
+  const el = document.getElementById('statsGrid');
+  if (!el) return;
+  try {
+    const resp = await fetch('stats.json', { cache: 'no-store' });
+    if (!resp.ok) throw new Error('stats.json недоступен');
+    const s = await resp.json();
+    const pnl = Number(s.pnl || 0);
+    document.getElementById('statTrades').textContent = s.trades ?? '—';
+    const pnlEl = document.getElementById('statPnl');
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(2) + '$';
+    pnlEl.className = pnl >= 0 ? 'pnl green' : 'pnl red';
+    document.getElementById('svTrades').textContent = s.trades ?? '—';
+    document.getElementById('svWin').textContent = (s.winrate != null ? s.winrate.toFixed(0) + '%' : '—');
+    const pnlCard = document.getElementById('svPnl');
+    pnlCard.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(2) + '$';
+    pnlCard.className = 'sv ' + (pnl >= 0 ? 'green' : 'red');
+    document.getElementById('svBest').textContent = s.best != null ? '+' + s.best.toFixed(2) + '$' : '—';
+  } catch (e) {
+    console.warn('нет stats.json:', e);
+  }
+}
+
+// --- 3. Тема: тёмная / светлая ---
+function initTheme() {
+  const t = document.getElementById('themeToggle');
+  if (!t) return;
+  const saved = localStorage.getItem('kriptik_theme');
+  if (saved === 'light') document.body.classList.add('light');
+  t.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  t.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    t.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+    localStorage.setItem('kriptik_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    try { ym(112280241, 'reachGoal', 'theme_click'); } catch(e) {}
+  });
+}
+
+// --- 4. Цели Метрики: прокрутка до конца + 30 сек на сайте ---
 function trackScroll() {
   const target = document.body.scrollHeight - window.innerHeight - 120;
   if (window.scrollY >= target) {
@@ -93,14 +156,25 @@ setTimeout(() => {
   try { ym(112280241, 'reachGoal', 'time_30s'); } catch(e) {}
 }, 30000);
 
+// клик по партнёрке
+document.addEventListener('click', e => {
+  const a = e.target.closest ? e.target.closest('a[href*="bitget.com"]') : null;
+  if (a) { try { ym(112280241, 'reachGoal', 'bitget_click'); } catch(err) {} }
+});
+
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 }
 
-// --- 4. Запуск ---
+// --- 5. Запуск ---
+initTheme();
 loadFeed();
 loadPrices();
+loadFNG();
+loadStats();
 setInterval(loadFeed, 10 * 60 * 1000);   // обновляем ленту
 setInterval(loadPrices, 60 * 1000);      // обновляем курсы
+setInterval(loadFNG, 10 * 60 * 1000);    // обновляем индекс
+setInterval(loadStats, 5 * 60 * 1000);   // обновляем статистику
