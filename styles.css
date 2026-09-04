@@ -56,12 +56,34 @@ body {
 }
 .btn-tg:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 158, 217, 0.5); }
 .btn-exchange {
-  display: inline-block; background: linear-gradient(135deg, #f0b90b, #ff8c00); color: #0d1117 !important;
+  display: inline-block; position: relative;
+  background: linear-gradient(135deg, #f0b90b, #ff8c00); color: #0d1117 !important;
   padding: 12px 26px; border-radius: 30px; font-weight: 800; font-size: 16px;
-  text-decoration: none; transition: transform .15s, box-shadow .15s; margin-left: 10px;
-  box-shadow: 0 4px 16px rgba(240, 185, 11, 0.4);
+  text-decoration: none; margin-left: 10px;
+  perspective: 500px;
+  transform-style: preserve-3d;
+  animation: btn3d 3s ease-in-out infinite;
+  box-shadow: 0 10px 24px rgba(240, 185, 11, 0.45), inset 0 -4px 0 rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.55);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
 }
-.btn-exchange:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(240, 185, 11, 0.55); }
+/* 3D "дыхание": наклон вперёд-назад + подъём */
+@keyframes btn3d {
+  0%, 100% { transform: rotateX(0deg) rotateY(0deg) translateY(0); }
+  25%      { transform: rotateX(14deg) rotateY(-6deg) translateY(-3px); }
+  50%      { transform: rotateX(-8deg) rotateY(6deg) translateY(1px); }
+  75%      { transform: rotateX(8deg) rotateY(-3deg) translateY(-2px); }
+}
+/* подвижный блик поверх кнопки */
+.btn-exchange::after {
+  content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.75), transparent);
+  transform: skewX(-20deg); animation: shine 2.6s linear infinite; border-radius: 30px;
+}
+@keyframes shine {
+  0%   { left: -80%; }
+  60%, 100% { left: 130%; }
+}
+.btn-exchange:hover { animation-play-state: paused; transform: translateY(-3px) scale(1.04); box-shadow: 0 14px 30px rgba(240, 185, 11, 0.6); }
 @media (max-width: 520px) {
   .btn-exchange { margin-left: 0; margin-top: 10px; }
 }
