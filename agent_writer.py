@@ -37,14 +37,17 @@ def log(msg):
 
 
 def get_env(key, default=""):
-    try:
-        with open(ENV_PATH, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith(key + "="):
-                    return line.split("=", 1)[1].strip().strip('"').strip("'")
-    except Exception:
-        pass
+    """Читает ключ из .env. Сначала свой .env, потом .env приложения (для DEEPSEEK_API_KEY)."""
+    paths = [ENV_PATH, "/opt/kriptik/.env"]
+    for p in paths:
+        try:
+            with open(p, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith(key + "="):
+                        return line.split("=", 1)[1].strip().strip('"').strip("'")
+        except Exception:
+            pass
     return default
 
 
@@ -156,12 +159,41 @@ def ai_summary(title, url):
     return None
 
 
+# примитивный переводчик для fallback: англ. слова → русские (для заголовков новостей)
+_RU_DICT = {
+    "bitcoin": "Биткоин", "btc": "BTC", "ethereum": "Эфир", "eth": "ETH", "crypto": "крипто",
+    "price": "цена", "market": "рынок", "trading": "торговля", "exchange": "биржа",
+    "investor": "инвестор", "investors": "инвесторы", "fund": "фонд", "funds": "фонды",
+    "regulator": "регулятор", "regulation": "регулирование", "lawsuit": "иск", "court": "суд",
+    "sued": "подал иск", "lawsuit": "судится", "stablecoin": "стейблкоин", "token": "токен",
+    "launch": "запуск", "launches": "запускает", "partners": "партнёр", "partnership": "партнёрство",
+    "payments": "платежи", "payment": "платёж", "exchange": "биржа", "report": "отчёт",
+    "reports": "сообщает", "reclaim": "отвоёвывает", "year": "год", "today": "сегодня",
+    "what": "что", "happened": "произошло", "here": "вот", "analysis": "анализ",
+    "bank": "банк", "banks": "банки", "ceo": "гендиректор", "bull": "бык", "bear": "медведь",
+    "rally": "ралли", "crash": "обвал", "defi": "DeFi", "nft": "NFT", "million": "млн",
+    "billion": "млрд", "collaboration": "сотрудничество", "care": "забота", "reserve": "резерв",
+    "federal": "федеральный", "institutions": "институты",
+}
+
+
 def plain_summary(title):
-    """Заметка без ИИ: заголовок + авто-резюме из самого заголовка (рудный fallback)."""
+    """Заметка без ИИ: заголовок + авто-резюме. Пытается перевести знакомые слова на русский."""
     t = html.unescape(title).strip()
-    # убираем длинные хвосты «— ...» / «| ...»
     clean = re.split(r"\s[—–|-]\s", t)[0].strip()
-    clean = clean[:90] if len(clean) > 90 else clean
+    # лёгкий перевод знакомых слов
+    words = clean.split()
+    out = []
+    for w in words:
+        wc = w.strip(".,!?:;()'\"")
+        low = wc.lower()
+        if low in _RU_DICT:
+            out.append(_RU_DICT[low])
+        elif low in ("and", "with", "for", "the", "of", "to", "in", "on", "a", "an", "is", "are"):
+            continue  # выбрасываем артикли/предлоги
+        else:
+            out.append(wc)
+    clean = " ".join(out)[:100] or t[:100]
     summary = t[:260]
     return clean, summary
 
@@ -199,6 +231,7 @@ def main():
         if not res:
             # нет ИИ-ключа (или он не отвечает) — пишем заметку без ИИ, автопилот работает
             res = plain_summary(n["title"])
+            log("(fallback без ИИ)")
         title, summary = res
         posts.insert(0, {
             "title": title,
@@ -211,6 +244,7 @@ def main():
         log(f"добавлено: {title[:60]}")
         if added >= 3:
             break
+        time.sleep(2)  # пауза между ИИ-запросами (избегаем 429)
 
     if added:
         # держим ленту не длиннее MAX_POSTS
