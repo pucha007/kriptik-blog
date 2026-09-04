@@ -83,23 +83,35 @@ async function loadPrices() {
 async function loadFNG() {
   const el = document.getElementById('fngBox');
   if (!el) return;
-  try {
-    const resp = await fetch('https://api.alternative.me/fng/?limit=1');
-    if (!resp.ok) throw new Error('fng недоступен');
-    const d = await resp.json();
-    const v = parseInt(d.data[0].value, 10);
-    const cls = v >= 60 ? 'up' : v <= 40 ? 'down' : '';
-    el.className = 'price ' + cls;
-    const labels = { 0:'😱 Паника', 25:'😨 Страх', 50:'😐 Нейтрально', 75:'😃 Жадность', 100:'🚀 Эйфория' };
-    let label = '';
-    for (const [k, l] of Object.entries(labels)) {
-      if (v >= Number(k)) label = l;
+  // ретраи: если первый запрос сорвался (VPN/сеть), пробуем ещё
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 7000);
+      const resp = await fetch('https://api.alternative.me/fng/?limit=1', { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!resp.ok) throw new Error('fng статус ' + resp.status);
+      const d = await resp.json();
+      const v = parseInt(d.data[0].value, 10);
+      const cls = v >= 60 ? 'up' : v <= 40 ? 'down' : '';
+      el.className = 'price ' + cls;
+      const labels = { 0:'😱 Паника', 25:'😨 Страх', 50:'😐 Нейтрально', 75:'😃 Жадность', 100:'🚀 Эйфория' };
+      let label = '';
+      for (const [k, l] of Object.entries(labels)) {
+        if (v >= Number(k)) label = l;
+      }
+      el.innerHTML = `<span class="psym">😱 Fear &amp; Greed</span>
+        <span class="pval">${v}/100</span>
+        <span class="ppct">${label}</span>`;
+      return;
+    } catch (e) {
+      console.warn('fng попытка ' + attempt + ':', e);
+      if (attempt === 2) {
+        el.innerHTML = '<div class="loading">Индекс временно недоступен — обнови страницу 🔄</div>';
+      } else {
+        await new Promise(r => setTimeout(r, 1500));
+      }
     }
-    el.innerHTML = `<span class="psym">😱 Fear &amp; Greed</span>
-      <span class="pval">${v}/100</span>
-      <span class="ppct">${label}</span>`;
-  } catch (e) {
-    el.innerHTML = '<div class="loading">Индекс недоступен…</div>';
   }
 }
 
