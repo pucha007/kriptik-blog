@@ -1,0 +1,67 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  line-height: 1.6;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);
+  border-bottom: 1px solid #21262d;
+  padding: 60px 0 40px;
+  text-align: center;
+}
+.logo { font-size: 22px; font-weight: 800; color: #f0b90b; letter-spacing: 2px; }
+.hero h1 { font-size: 42px; margin: 12px 0; background: linear-gradient(90deg, #f0b90b, #58a6ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero .sub { font-size: 18px; color: #8b949e; margin-bottom: 20px; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.badges span {
+  background: #21262d; border: 1px solid #30363d;
+  padding: 6px 14px; border-radius: 20px; font-size: 14px; color: #c9d1d9;
+}
+
+/* Sections */
+section { padding: 36px 0; border-bottom: 1px solid #21262d; }
+section h2 { font-size: 26px; margin-bottom: 16px; color: #f0b90b; }
+#about p { margin-bottom: 12px; color: #b6bec6; }
+
+/* Feed */
+.feed { display: grid; gap: 14px; }
+.card {
+  background: #161b22; border: 1px solid #21262d; border-radius: 10px;
+  padding: 16px 18px; transition: transform .15s, border-color .15s;
+}
+.card:hover { transform: translateY(-2px); border-color: #f0b90b; }
+.card .date { font-size: 13px; color: #8b949e; }
+.card h3 { font-size: 17px; margin: 4px 0 6px; }
+.card p { font-size: 15px; color: #b6bec6; }
+.card a { color: #58a6ff; text-decoration: none; font-size: 14px; }
+.card a:hover { text-decoration: underline; }
+.loading { color: #8b949e; padding: 20px; text-align: center; }
+
+/* Steps */
+.steps { list-style: none; counter-reset: step; }
+.steps li {
+  counter-increment: step; position: relative; padding: 10px 0 10px 44px;
+  color: #b6bec6; font-size: 16px;
+}
+.steps li::before {
+  content: counter(step); position: absolute; left: 0; top: 10px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #f0b90b; color: #0d1117; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Footer */
+footer { padding: 28px 0; text-align: center; color: #8b949e; }
+footer .small { font-size: 13px; margin-top: 6px; }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 30px; }
+  .hero .sub { font-size: 15px; }
+}
