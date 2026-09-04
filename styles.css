@@ -9,6 +9,49 @@ body {
 
 .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
 
+/* 3D-куб «Криптик» */
+.bot3d { width: 110px; height: 110px; margin: 14px auto 10px; perspective: 600px; }
+.cube {
+  width: 100%; height: 100%; position: relative;
+  transform-style: preserve-3d;
+  animation: spin 8s linear infinite;
+}
+.cube .face {
+  position: absolute; width: 110px; height: 110px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px; border-radius: 14px;
+  background: rgba(240, 185, 11, 0.10);
+  border: 2px solid rgba(240, 185, 11, 0.55);
+  box-shadow: 0 0 22px rgba(240, 185, 11, 0.25);
+  backface-visibility: hidden;
+}
+.cube .front { transform: translateZ(55px); }
+.cube .back  { transform: rotateY(180deg) translateZ(55px); }
+.cube .left  { transform: rotateY(-90deg) translateZ(55px); }
+.cube .right { transform: rotateY(90deg) translateZ(55px); }
+.cube .top   { transform: rotateX(90deg) translateZ(55px); }
+.cube .bottom{ transform: rotateX(-90deg) translateZ(55px); }
+@keyframes spin {
+  0%   { transform: rotateX(0deg) rotateY(0deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cube { animation: none; }
+}
+
+/* Кнопка на канал */
+.cta { margin: 14px 0 18px; }
+.btn-tg {
+  display: inline-block; background: #229ed9; color: #fff !important;
+  padding: 12px 26px; border-radius: 30px; font-weight: 700; font-size: 16px;
+  text-decoration: none; transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 16px rgba(34, 158, 217, 0.35);
+}
+.btn-tg:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 158, 217, 0.5); }
+.channel-link { margin-top: 14px; }
+.channel-link a { color: #229ed9; font-weight: 700; text-decoration: none; }
+.channel-link a:hover { text-decoration: underline; }
+
 /* Hero */
 .hero {
   background: linear-gradient(135deg, #161b22 0%, #0d1117 100%);

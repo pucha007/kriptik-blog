@@ -32,27 +32,50 @@ async function loadFeed() {
   }
 }
 
-// --- 2. Живые курсы BTC/ETH (public API, без ключей) ---
+// --- 2. Живые курсы BTC/ETH (двойной источник: Binance → CoinGecko) ---
 async function loadPrices() {
   const el = document.getElementById('prices');
   if (!el) return;
   try {
-    const resp = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT"]');
-    if (!resp.ok) throw new Error();
-    const rows = await resp.json();
+    let rows = null;
+    // сначала Binance (быстрый, детальный)
+    try {
+      const resp = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT"]', { timeout: 8000 });
+      if (resp.ok) {
+        const arr = await resp.json();
+        rows = arr.map(r => ({
+          sym: r.symbol.startsWith('BTC') ? '₿ BTC' : 'Ξ ETH',
+          last: parseFloat(r.lastPrice),
+          open: parseFloat(r.openPrice)
+        }));
+      }
+    } catch (e) {}
+    // fallback: CoinGecko (работает почти везде)
+    if (!rows) {
+      const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
+      if (resp.ok) {
+        const d = await resp.json();
+        rows = [
+          { sym: '₿ BTC', last: d.bitcoin.usd, open: null, chg: d.bitcoin.usd_24h_change },
+          { sym: 'Ξ ETH', last: d.ethereum.usd, open: null, chg: d.ethereum.usd_24h_change },
+        ];
+      }
+    }
+    if (!rows) throw new Error('нет данных');
     const fmt = n => Number(n).toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     el.innerHTML = rows.map(r => {
-      const up = parseFloat(r.lastPrice) >= parseFloat(r.openPrice);
-      const pct = ((parseFloat(r.lastPrice) - parseFloat(r.openPrice)) / parseFloat(r.openPrice) * 100).toFixed(2);
+      const chg = (r.chg != null)
+        ? r.chg
+        : (r.open ? ((r.last - r.open) / r.open * 100) : 0);
+      const up = chg >= 0;
       return `<div class="price ${up ? 'up' : 'down'}">
-        <span class="psym">${r.symbol.startsWith('BTC') ? '₿' : 'Ξ'} ${r.symbol.replace('USDT','')}</span>
-        <span class="pval">$${fmt(r.lastPrice)}</span>
-        <span class="ppct">${up ? '▲' : '▼'} ${pct}%</span>
+        <span class="psym">${r.sym}</span>
+        <span class="pval">$${fmt(r.last)}</span>
+        <span class="ppct">${up ? '▲' : '▼'} ${chg.toFixed(2)}%</span>
       </div>`;
     }).join('');
-    if (typeof window.__pricesLoaded === 'function') window.__pricesLoaded();
   } catch (e) {
-    el.innerHTML = '<div class="loading">Курсы временно недоступны</div>';
+    el.innerHTML = '<div class="loading">Курсы временно недоступны (без VPN)</div>';
   }
 }
 
