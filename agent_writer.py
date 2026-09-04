@@ -17,8 +17,14 @@ import urllib.request
 import urllib.parse
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-# папка сайта-блога (одностаничник) — рядом с агентом: ../blog
-BLOG_DIR = os.path.abspath(os.path.join(BASE, "..", "blog"))
+# папка сайта-блога (одностаничник).
+# На VPS агент и сайт живут рядом в /opt/kblog → пишем в СВОЮ папку.
+# Если рядом лежит ../blog (локально), используем его.
+_local_blog = os.path.abspath(os.path.join(BASE, "..", "blog"))
+if os.path.isdir(_local_blog) and os.path.exists(os.path.join(_local_blog, "index.html")):
+    BLOG_DIR = _local_blog
+else:
+    BLOG_DIR = BASE
 POSTS_PATH = os.path.join(BLOG_DIR, "posts.json")
 MAX_POSTS = 20          # сколько заметок держим на ленте
 FRESH_HOURS = 48        # статьи не старше скольких часов берём в заметки
